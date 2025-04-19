@@ -9,11 +9,8 @@ def get_sqlserver_engine():
     host = SQLSERVER_CONFIG["host"]
     port = SQLSERVER_CONFIG["port"]
     database = SQLSERVER_CONFIG["database"]
-    url = (
-        f"mssql+pyodbc://{user}:{password}"
-        f"@{host}:{port}/{database}?driver=ODBC+Driver+18+for+SQL+Server;"
-        "TrustServerCertificate=yes"
-    )
+    params = "driver=ODBC+Driver+18+for+SQL+Server" "&TrustServerCertificate=yes"
+    url = f"mssql+pyodbc://{user}:{password}" f"@{host}:{port}/{database}?{params}"
     engine = create_engine(url)
     return engine
 
@@ -84,7 +81,7 @@ def extract_dim_cliente():
     FROM Sales.Customers C
     JOIN Sales.Invoices I
       ON C.CustomerID = I.CustomerID
-    JOIN Sales.CustomersCategories CC
+    JOIN Sales.CustomerCategories CC
       ON C.CustomerCategoryID = CC.CustomerCategoryID
     JOIN Application.Cities CI
       ON C.DeliveryCityID = CI.CityID

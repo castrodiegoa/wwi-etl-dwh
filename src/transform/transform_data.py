@@ -120,6 +120,8 @@ def build_fact_facturas(
 ):
     df = fact_facturas_base_df.copy()
 
+    df["fecha_operacion"] = pd.to_datetime(df["fecha_operacion"])
+
     df = df.merge(dim_tiempo, left_on="fecha_operacion", right_on="fecha_completa")
     df = df.merge(dim_cliente, left_on="cliente_id", right_on="cliente_id")
     df = df.merge(dim_producto, left_on="producto_id", right_on="producto_id")
