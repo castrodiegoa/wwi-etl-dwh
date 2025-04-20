@@ -6,7 +6,7 @@ import pandas as pd
 # ----------------------------------------------------------------
 def build_dim_tiempo(fact_facturas_base_df):
     """
-    Crea la dimensión de tiempo a partir de las fechas encontradas como InvoiceDate en la tabla Invoices.
+    Crea la dimensión de tiempo a partir del atributo InvoiceDate en la tabla Invoices.
     """
 
     # Extraer las fechas únicas
@@ -49,10 +49,12 @@ def build_dim_tiempo(fact_facturas_base_df):
     return dim_tiempo
 
 
-# -------------- DIM CLIENTE --------------
+# ----------------------------------------------------------------
+#  DIM CLIENTE
+# ----------------------------------------------------------------
 def build_dim_cliente(dim_cliente_base_df):
     """
-    Crea la dimensión de cliente a partir de la tabla customers de los clientes que aparecen en invoices.
+    Crea la dimensión de cliente a partir de los clientes que aparecen en Invoices.
     """
 
     # Aseguramos clientes únicos
@@ -71,10 +73,12 @@ def build_dim_cliente(dim_cliente_base_df):
     return dim_cliente
 
 
-# -------------- DIM PRODUCTO --------------
+# ----------------------------------------------------------------
+#  DIM PRODUCTO
+# ----------------------------------------------------------------
 def build_dim_producto(dim_producto_base_df):
     """
-    Crea la dimensión de producto a partir de la tabla StockItems de los productos que aparecen en InvoiceLines.
+    Crea la dimensión de producto a partir de los productos que aparecen en InvoiceLines.
     """
 
     # Aseguramos productos únicos
@@ -92,10 +96,12 @@ def build_dim_producto(dim_producto_base_df):
     return dim_producto
 
 
-# -------------- DIM EMPLEADO --------------
+# ----------------------------------------------------------------
+#  DIM EMPLEADO
+# ----------------------------------------------------------------
 def build_dim_empleado(dim_empleado_base_df):
     """
-    Crea la dimensión de empleado a partir de la tabla People de los empleados que aparecen en Invoices.
+    Crea la dimensión de empleado a partir de los empleados que aparecen en Invoices.
     """
 
     # Aseguramos empleados únicos
@@ -114,20 +120,30 @@ def build_dim_empleado(dim_empleado_base_df):
     return dim_empleado
 
 
-# -------------- FACT FACTURAS --------------
+# ----------------------------------------------------------------
+#  FACT FACTURAS
+# ----------------------------------------------------------------
 def build_fact_facturas(
     fact_facturas_base_df, dim_tiempo, dim_cliente, dim_producto, dim_empleado
 ):
-    df = fact_facturas_base_df.copy()
+    """
+    Crea la tabla de hechos de ventas a partir de la tabla base de facturas y las dimensiones.
+    """
 
-    df["fecha_operacion"] = pd.to_datetime(df["fecha_operacion"])
+    # Aseguramos detalles únicos
+    fact_df = fact_facturas_base_df.copy().drop_duplicates(subset=["linea_factura_id"])
 
-    df = df.merge(dim_tiempo, left_on="fecha_operacion", right_on="fecha_completa")
-    df = df.merge(dim_cliente, left_on="cliente_id", right_on="cliente_id")
-    df = df.merge(dim_producto, left_on="producto_id", right_on="producto_id")
-    df = df.merge(dim_empleado, left_on="empleado_id", right_on="empleado_id")
+    fact_df["fecha_operacion"] = pd.to_datetime(fact_df["fecha_operacion"])
 
-    return df[
+    fact_df = fact_df.merge(
+        dim_tiempo, left_on="fecha_operacion", right_on="fecha_completa"
+    )
+    fact_df = fact_df.merge(dim_cliente, left_on="cliente_id", right_on="cliente_id")
+    fact_df = fact_df.merge(dim_producto, left_on="producto_id", right_on="producto_id")
+    fact_df = fact_df.merge(dim_empleado, left_on="empleado_id", right_on="empleado_id")
+
+    # Orden final de columnas
+    fact_facturas = fact_df[
         [
             "factura_id",
             "tiempo_id",
@@ -143,3 +159,5 @@ def build_fact_facturas(
             "ganancia_linea",
         ]
     ]
+
+    return fact_facturas
